@@ -1,13 +1,19 @@
-// server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'https://todolist-pink-five.vercel.app'
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
 
-// Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // MongoDB Connection
@@ -20,7 +26,7 @@ mongoose.connect(MONGODB_URI, {
 .then(() => console.log('✅ MongoDB Connected'))
 .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
-// Todo Schema & Model
+// Schema & Model
 const todoSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -39,9 +45,9 @@ const todoSchema = new mongoose.Schema({
 
 const Todo = mongoose.model('Todo', todoSchema);
 
-// REST API Endpoints
+// ✅ ROUTES
 
-// GET /api/todos - Get all todos
+// GET all todos
 app.get('/api/todos', async (req, res) => {
   try {
     const todos = await Todo.find().sort({ createdAt: -1 });
@@ -51,7 +57,7 @@ app.get('/api/todos', async (req, res) => {
   }
 });
 
-// POST /api/todos - Add a new todo
+// POST new todo
 app.post('/api/todos', async (req, res) => {
   try {
     const { title } = req.body;
@@ -72,7 +78,7 @@ app.post('/api/todos', async (req, res) => {
   }
 });
 
-// PUT /api/todos/:id - Update a todo
+// PUT update todo
 app.put('/api/todos/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -98,7 +104,7 @@ app.put('/api/todos/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/todos/:id - Delete a todo
+// DELETE todo
 app.delete('/api/todos/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -114,7 +120,7 @@ app.delete('/api/todos/:id', async (req, res) => {
   }
 });
 
-// Health check endpoint
+// Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
@@ -124,23 +130,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-
-// Update CORS configuration
-const allowedOrigins = {
-  origin: [
-    'http://localhost:3000',
-    'https://frontend-cujf.vercel.app'
-  ],
-};
-
-app.use(cors({
-  origin: function(origin, callback){
-    // allow requests with no origin (like Postman)
-    if(!origin) return callback(null, true);
-    if(allowedOrigins.indexOf(origin) === -1){
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  }
-}));
